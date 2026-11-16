@@ -10,5 +10,47 @@ const SUPABASE_URL = 'https://arnemwhsmpkqaqjnrzaf.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_g53EM-_3golRtBp-Bmjofg_LYyKv9Go';
 const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const KEY='chorequest-prototype-v1';const defaults={coins:0,tasks:[{id:1,name:'Take out bins',coins:30,done:false},{id:2,name:'Wipe kitchen benches',coins:15,done:false},{id:3,name:'Vacuum living room',coins:25,done:false}]};let state;try{const saved=JSON.parse(localStorage.getItem(KEY));state=saved&&Array.isArray(saved.tasks)&&Number.isFinite(saved.coins)?saved:structuredClone(defaults)}catch{state=structuredClone(defaults)}function save(){localStorage.setItem(KEY,JSON.stringify(state))}function escapeHTML(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}function taskMarkup(t){return `<div class="task"><div><strong>${escapeHTML(t.name)}</strong><small>🪙 ${t.coins} coins ${t.done?'· Completed':'· Ready to complete'}</small></div><button class="action ${t.done?'secondary':''}" data-complete="${t.id}" ${t.done?'disabled':''}>${t.done?'✓ Done':'Complete'}</button></div>`}function render(){document.getElementById('coins').textContent=state.coins;const done=state.tasks.filter(t=>t.done).length;document.getElementById('progressText').textContent=`${done} of ${state.tasks.length} quests completed`;document.getElementById('progressBar').style.width=(state.tasks.length?100*done/state.tasks.length:0)+'%';document.getElementById('homeTasks').innerHTML=state.tasks.filter(t=>!t.done).map(taskMarkup).join('')||'<div class="empty">🎉 All quests complete!</div>';document.getElementById('allTasks').innerHTML=state.tasks.map(taskMarkup).join('')||'<div class="empty">No chores yet</div>'}document.addEventListener('click',e=>{const b=e.target.closest('[data-complete]');if(!b)return;const t=state.tasks.find(x=>x.id===Number(b.dataset.complete));if(t&&!t.done){t.done=true;state.coins+=t.coins;save();render()}});document.getElementById('addForm').addEventListener('submit',e=>{e.preventDefault();const name=document.getElementById('taskName').value.trim();const coins=Number(document.getElementById('taskCoins').value);if(!name||!Number.isInteger(coins)||coins<1||coins>500)return;state.tasks.push({id:Date.now(),name,coins,done:false});save();render();e.target.reset()});document.querySelectorAll('[data-page]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('main section').forEach(s=>s.classList.toggle('hidden',s.id!==b.dataset.page));document.querySelectorAll('[data-page]').forEach(x=>x.classList.toggle('active',x===b));scrollTo({top:0,behavior:'smooth'})}));render();if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});
+
+
+async function signUp(email, password) {
+  const { data, error } = await db.auth.signUp({
+    email,
+    password,
+    options: {
+      emailRedirectTo: 'https://chorequest-aes.pages.dev'
+    }
+  });
+
+  if (error) {
+    alert('Sign-up failed: ' + error.message);
+    return null;
+  }
+
+  alert('Account created! Check your email for a confirmation link.');
+  return data;
+}
+
+async function logIn(email, password) {
+  const { data, error } = await db.auth.signInWithPassword({
+    email,
+    password
+  });
+
+  if (error) {
+    alert('Login failed: ' + error.message);
+    return null;
+  }
+
+  return data;
+}
+
+async function logOut() {
+  const { error } = await db.auth.signOut();
+
+  if (error) {
+    alert('Logout failed: ' + error.message);
+  }
+}
+  
+  const KEY='chorequest-prototype-v1';const defaults={coins:0,tasks:[{id:1,name:'Take out bins',coins:30,done:false},{id:2,name:'Wipe kitchen benches',coins:15,done:false},{id:3,name:'Vacuum living room',coins:25,done:false}]};let state;try{const saved=JSON.parse(localStorage.getItem(KEY));state=saved&&Array.isArray(saved.tasks)&&Number.isFinite(saved.coins)?saved:structuredClone(defaults)}catch{state=structuredClone(defaults)}function save(){localStorage.setItem(KEY,JSON.stringify(state))}function escapeHTML(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}function taskMarkup(t){return `<div class="task"><div><strong>${escapeHTML(t.name)}</strong><small>🪙 ${t.coins} coins ${t.done?'· Completed':'· Ready to complete'}</small></div><button class="action ${t.done?'secondary':''}" data-complete="${t.id}" ${t.done?'disabled':''}>${t.done?'✓ Done':'Complete'}</button></div>`}function render(){document.getElementById('coins').textContent=state.coins;const done=state.tasks.filter(t=>t.done).length;document.getElementById('progressText').textContent=`${done} of ${state.tasks.length} quests completed`;document.getElementById('progressBar').style.width=(state.tasks.length?100*done/state.tasks.length:0)+'%';document.getElementById('homeTasks').innerHTML=state.tasks.filter(t=>!t.done).map(taskMarkup).join('')||'<div class="empty">🎉 All quests complete!</div>';document.getElementById('allTasks').innerHTML=state.tasks.map(taskMarkup).join('')||'<div class="empty">No chores yet</div>'}document.addEventListener('click',e=>{const b=e.target.closest('[data-complete]');if(!b)return;const t=state.tasks.find(x=>x.id===Number(b.dataset.complete));if(t&&!t.done){t.done=true;state.coins+=t.coins;save();render()}});document.getElementById('addForm').addEventListener('submit',e=>{e.preventDefault();const name=document.getElementById('taskName').value.trim();const coins=Number(document.getElementById('taskCoins').value);if(!name||!Number.isInteger(coins)||coins<1||coins>500)return;state.tasks.push({id:Date.now(),name,coins,done:false});save();render();e.target.reset()});document.querySelectorAll('[data-page]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('main section').forEach(s=>s.classList.toggle('hidden',s.id!==b.dataset.page));document.querySelectorAll('[data-page]').forEach(x=>x.classList.toggle('active',x===b));scrollTo({top:0,behavior:'smooth'})}));render();if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});
 </script></body></html>

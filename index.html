@@ -91,6 +91,46 @@ async function checkSession() {
 
 checkSession();
 
+async function loadHousehold() {
+  const { data: { user }, error: userError } = await db.auth.getUser();
+
+  if (userError || !user) return;
+
+  const { data: member, error: memberError } = await db
+    .from('members')
+    .select('household_id, role, display_name, coins')
+    .eq('user_id', user.id)
+    .maybeSingle();
+
+  if (memberError) {
+    console.error('Could not load membership:', memberError);
+    return;
+  }
+
+  if (!member) {
+    console.log('No household membership found.');
+    return;
+  }
+
+  const { data: household, error: householdError } = await db
+    .from('households')
+    .select('id, name, invite_code')
+    .eq('id', member.household_id)
+    .single();
+
+  if (householdError) {
+    console.error('Could not load household:', householdError);
+    return;
+  }
+
+  window.currentHousehold = household;
+  window.currentMember = member;
+
+  document.getElementById('household-message').textContent =
+    'Your household: ' + household.name +
+    ' | Invite code: ' + household.invite_code;
+}
+loadHousehold();
 document.getElementById('create-household-form').addEventListener('submit', async function(event) {
   event.preventDefault();
 

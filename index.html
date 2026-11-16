@@ -124,6 +124,7 @@ async function loadHousehold() {
   }
 
   window.currentHousehold = household;
+  document.getElementById('create-household-form').style.display = 'none';
   window.currentMember = member;
 
   document.getElementById('household-message').textContent =
